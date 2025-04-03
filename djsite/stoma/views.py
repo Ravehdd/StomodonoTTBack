@@ -6,6 +6,14 @@ from .models import *
 from datetime import datetime
 import dateutil.parser
 import logging
+from pymongo import MongoClient
+# settings.py
+from djsite.settings import DB_LOGIN
+from djsite.settings import DB_PASS
+
+# client = MongoClient(f'mongodb://{DB_LOGIN}:{DB_PASS}@5.35.99.228:27017')
+client = MongoClient("localhost", port=27017)
+db = client['products-db']
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +94,16 @@ class PatientDetailAPIView(generics.ListAPIView):
                 return None
         except IndexError:
             return None
+
+
+class TestMongoAPIView(APIView):
+    def get(self, request):
+        data = db.products
+        products_raw = list(data.find({}))
+        products = []
+        for product in products_raw:
+            product['id'] = str(product.pop('_id'))
+            products.append(product)
+        print(type(products))
+        print(products)
+        return Response({"data": products})
