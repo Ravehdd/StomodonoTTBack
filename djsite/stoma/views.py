@@ -7,9 +7,9 @@ from datetime import datetime
 import dateutil.parser
 import logging
 from pymongo import MongoClient
-# settings.py
-from djsite.settings import DB_LOGIN
-from djsite.settings import DB_PASS
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 # client = MongoClient(f'mongodb://{DB_LOGIN}:{DB_PASS}@5.35.99.228:27017')
 client = MongoClient("localhost", port=27017)
@@ -47,7 +47,14 @@ class InitialiseDBAPIView(APIView):
 
 
 class PatientsAPIView(generics.ListAPIView):
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
+    def get_queryset(self):
+        import time
+        time.sleep(2)
+        return super().get_queryset()
     queryset = Patient.objects.filter(id=71)
     serializer_class = IndexSerializer
 
